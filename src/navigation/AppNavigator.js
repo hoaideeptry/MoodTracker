@@ -1,30 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-// Import các màn hình
+import { onAuthStateChanged } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
+import { auth } from '../services/firebaseConfig';
 import HomeScreen from '../screens/HomeScreen';
 import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import LoginScreen from '../screens/LoginScreen';       // Import Login
-import RegisterScreen from '../screens/RegisterScreen'; // Import Register
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import { COLORS } from '../theme/theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// 1. Luồng Tab chính (Chỉ chứa các màn hình khi ĐÃ ĐĂNG NHẬP)
-const MainTabNavigator = () => (
+const TAB_ICONS = {
+  Home: ['home', 'home-outline'],
+  Stats: ['bar-chart', 'bar-chart-outline'],
+  Profile: ['person', 'person-outline'],
+};
+
+// Luồng Tab chính (sau khi đăng nhập)
+const MainTabs = () => (
   <Tab.Navigator
-    screenOptions={{
+    screenOptions={({ route }) => ({
       headerShown: false,
-      tabBarShowLabel: true, 
+      tabBarIcon: ({ focused, color, size }) => (
+        <Ionicons name={TAB_ICONS[route.name][focused ? 0 : 1]} size={size} color={color} />
+      ),
       tabBarStyle: {
         height: 70,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         backgroundColor: COLORS.white,
-        position: 'absolute', 
+        position: 'absolute',
         borderTopWidth: 0,
         elevation: 10,
         shadowColor: '#000',
@@ -34,7 +44,7 @@ const MainTabNavigator = () => (
       },
       tabBarActiveTintColor: COLORS.textMain,
       tabBarInactiveTintColor: COLORS.textSub,
-    }}
+    })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Stats" component={StatsScreen} />
@@ -42,19 +52,30 @@ const MainTabNavigator = () => (
   </Tab.Navigator>
 );
 
-// 2. Luồng Stack tổng (Bọc cả Auth và MainTab)
+// Luồng Auth (chưa đăng nhập)
+const AuthStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Register" component={RegisterScreen} />
+  </Stack.Navigator>
+);
+
+// Navigator gốc - tự động chuyển luồng theo trạng thái Auth
 export const MainNavigator = () => {
-  return (
-    <Stack.Navigator 
-      screenOptions={{ headerShown: false }} 
-      initialRouteName="Login" // Mở App lên là vào thẳng Login
-    >
-      {/* Nhóm Auth (Chưa đăng nhập) */}
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      
-      {/* Nhóm App Chính (Sau khi đăng nhập thành công) */}
-      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-    </Stack.Navigator>
-  );
+  const [user, setUser] = useState(undefined); // undefined = đang kiểm tra
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u ?? null));
+    return unsub;
+  }, []);
+
+  if (user === undefined) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return user ? <MainTabs /> : <AuthStack />;
 };

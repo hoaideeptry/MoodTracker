@@ -12,11 +12,11 @@ const BAR_COLORS = [
   COLORS.primary,
 ];
 
-const MonthlyChart = ({ data }) => {
+const MonthlyChart = ({ data, cardBg }) => {
   const barHeights = data || [0.6, 0.8, 0.45, 0.9, 0.7, 0.55, 0.85];
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, cardBg && { backgroundColor: cardBg }]}>
       <Text style={styles.title}>Tổng quan tháng</Text>
       <View style={styles.barsRow}>
         {barHeights.map((h, i) => (
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.fontBody,
     fontWeight: '700',
-    color: COLORS.textMain,
+    color: '#333',
     marginBottom: 18,
   },
   barsRow: {

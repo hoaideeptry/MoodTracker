@@ -1,13 +1,14 @@
-import { db } from './firebaseConfig';
+import { db, auth } from './firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Hàm gửi dữ liệu cảm xúc lên Firebase
 export const saveMoodLog = async (moodScore, note) => {
   try {
-    // Tạo một Collection tên là "MoodLogs" và lưu dữ liệu vào
+    const uid = auth.currentUser?.uid || 'anonymous';
     const docRef = await addDoc(collection(db, "MoodLogs"), {
       moodScore: moodScore,
       note: note,
+      userId: uid,
       timestamp: serverTimestamp(),
     });
     console.log("Đã lưu thành công với ID: ", docRef.id);

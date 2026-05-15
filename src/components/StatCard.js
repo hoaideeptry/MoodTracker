@@ -25,11 +25,11 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.textMain,
+    color: '#333',
   },
   label: {
     fontSize: SIZES.fontSmall,
-    color: COLORS.textMain,
+    color: '#333',
     marginTop: 8,
     fontWeight: '500',
     textAlign: 'center',

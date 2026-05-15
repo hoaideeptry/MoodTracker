@@ -1,67 +1,66 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebaseConfig';
 import { COLORS, SIZES } from '../theme/theme';
 
 const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      alert('Vui lòng nhập đầy đủ Email và Mật khẩu!');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      // onAuthStateChanged trong AppNavigator sẽ tự chuyển sang MainTabs
+    } catch (error) {
+      let msg = error.message;
+      if (error.code === 'auth/user-not-found') msg = 'Tài khoản không tồn tại!';
+      else if (error.code === 'auth/wrong-password') msg = 'Sai mật khẩu!';
+      else if (error.code === 'auth/invalid-email') msg = 'Email không hợp lệ!';
+      else if (error.code === 'auth/invalid-credential') msg = 'Email hoặc mật khẩu không đúng!';
+      alert(msg);
+      setIsLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.content}>
-        
-        {/* Header Section */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Chào mừng trở lại! 👋</Text>
           <Text style={styles.subTitle}>Hãy đăng nhập để tiếp tục hành trình chăm sóc tâm hồn nhé.</Text>
         </View>
 
-        {/* Form Section */}
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Email</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="nhap-email-cua-ban@gmail.com" 
-              placeholderTextColor={COLORS.textSub}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            <TextInput style={styles.input} placeholder="your email@gmail.com" placeholderTextColor={COLORS.textSub}
+              keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
           </View>
-
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Mật khẩu</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="••••••••" 
-              placeholderTextColor={COLORS.textSub}
-              secureTextEntry
-            />
+            <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={COLORS.textSub}
+              secureTextEntry value={password} onChangeText={setPassword} />
           </View>
-
           <TouchableOpacity style={styles.forgotBtn}>
             <Text style={styles.forgotText}>Quên mật khẩu?</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Buttons Section */}
         <View style={styles.footer}>
-          
-          {/* Đã chèn sự kiện chuyển sang MainTabs vào đây */}
-          <TouchableOpacity 
-            style={styles.primaryBtn}
-            onPress={() => navigation.navigate('MainTabs')} 
-          >
-            <Text style={styles.btnText}>Đăng Nhập</Text>
+          <TouchableOpacity style={[styles.primaryBtn, isLoading && { opacity: 0.7 }]} onPress={handleLogin} disabled={isLoading}>
+            {isLoading ? <ActivityIndicator color={COLORS.textMain} /> : <Text style={styles.btnText}>Đăng Nhập</Text>}
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Register')} 
-            style={styles.linkBtn}
-          >
-            <Text style={styles.linkText}>
-              Chưa có tài khoản? <Text style={styles.linkTextBold}>Đăng ký ngay</Text>
-            </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkBtn}>
+            <Text style={styles.linkText}>Chưa có tài khoản? <Text style={styles.linkTextBold}>Đăng ký ngay</Text></Text>
           </TouchableOpacity>
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -77,27 +76,20 @@ const styles = StyleSheet.create({
   inputContainer: { marginBottom: 20 },
   inputLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textMain, marginBottom: 8, marginLeft: 5 },
   input: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius,
-    padding: 20,
-    fontSize: 16,
-    color: COLORS.textMain,
+    backgroundColor: COLORS.white, borderRadius: SIZES.radius, padding: 20, fontSize: 16, color: COLORS.textMain,
     shadowColor: COLORS.textMain, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2,
   },
   forgotBtn: { alignSelf: 'flex-end', marginTop: -5 },
   forgotText: { color: COLORS.textSub, fontSize: 14, fontWeight: '500' },
   footer: { marginTop: 20 },
   primaryBtn: {
-    backgroundColor: COLORS.primary, // Màu Cam Đào Pastel
-    borderRadius: SIZES.radius,
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: COLORS.primary, borderRadius: SIZES.radius, padding: 20, alignItems: 'center',
     shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 8,
   },
   btnText: { fontSize: 18, fontWeight: 'bold', color: COLORS.textMain },
   linkBtn: { marginTop: 25, alignItems: 'center' },
   linkText: { fontSize: 15, color: COLORS.textSub },
-  linkTextBold: { color: COLORS.primary, fontWeight: 'bold' }
+  linkTextBold: { color: COLORS.primary, fontWeight: 'bold' },
 });
 
 export default LoginScreen;

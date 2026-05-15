@@ -2,13 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SIZES, MOOD_EMOJI_MAP, MOOD_COLOR_MAP } from '../theme/theme';
 
-const WeeklyOverview = ({ weekData }) => (
+const WeeklyOverview = ({ weekData, cardBg }) => (
   <View>
     <View style={styles.header}>
       <Text style={styles.title}>Tuần này</Text>
       <Text style={styles.dots}>•••</Text>
     </View>
-    <View style={styles.card}>
+    <View style={[styles.card, cardBg && { backgroundColor: cardBg }]}>
       {weekData.map((item, index) => (
         <View key={index} style={styles.dayCol}>
           <View
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.fontBody,
     fontWeight: '700',
-    color: COLORS.textMain,
+    color: '#333',
   },
   dots: {
     fontSize: 16,

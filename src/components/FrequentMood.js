@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SIZES } from '../theme/theme';
 
-const FrequentMood = ({ emoji, label }) => (
-  <View style={styles.card}>
+const FrequentMood = ({ emoji, label, cardBg }) => (
+  <View style={[styles.card, cardBg && { backgroundColor: cardBg }]}>
     <View style={styles.emojiCircle}>
       <Text style={styles.emoji}>{emoji}</Text>
     </View>
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: SIZES.fontLarge,
     fontWeight: '700',
-    color: COLORS.textMain,
+    color: '#333',
     marginTop: 4,
   },
 });

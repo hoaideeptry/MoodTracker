@@ -8,6 +8,8 @@ import { auth } from '../services/firebaseConfig';
 import HomeScreen from '../screens/HomeScreen';
 import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import HistoryScreen from '../screens/HistoryScreen';
+import HealingScreen from '../screens/HealingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import { COLORS } from '../theme/theme';
@@ -16,9 +18,19 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const TAB_ICONS = {
-  Home: ['home', 'home-outline'],
-  Stats: ['bar-chart', 'bar-chart-outline'],
-  Profile: ['person', 'person-outline'],
+  Home:    ['home',     'home-outline'],
+  Stats:   ['bar-chart','bar-chart-outline'],
+  History: ['calendar', 'calendar-outline'],
+  Healing: ['leaf',     'leaf-outline'],
+  Profile: ['person',   'person-outline'],
+};
+
+const TAB_LABELS = {
+  Home:    'Trang chủ',
+  Stats:   'Thống kê',
+  History: 'Lịch sử',
+  Healing: 'Chữa lành',
+  Profile: 'Hồ sơ',
 };
 
 // Luồng Tab chính (sau khi đăng nhập)
@@ -29,8 +41,9 @@ const MainTabs = () => (
       tabBarIcon: ({ focused, color, size }) => (
         <Ionicons name={TAB_ICONS[route.name][focused ? 0 : 1]} size={size} color={color} />
       ),
+      tabBarLabel: TAB_LABELS[route.name] || route.name,
       tabBarStyle: {
-        height: 70,
+        height: 72,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         backgroundColor: COLORS.white,
@@ -38,16 +51,21 @@ const MainTabs = () => (
         borderTopWidth: 0,
         elevation: 10,
         shadowColor: '#000',
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.06,
         shadowOffset: { width: 0, height: -5 },
-        shadowRadius: 10,
+        shadowRadius: 12,
+        paddingBottom: 10,
+        paddingTop: 6,
       },
       tabBarActiveTintColor: COLORS.textMain,
       tabBarInactiveTintColor: COLORS.textSub,
+      tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
     })}
   >
-    <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Stats" component={StatsScreen} />
+    <Tab.Screen name="Home"    component={HomeScreen} />
+    <Tab.Screen name="Stats"   component={StatsScreen} />
+    <Tab.Screen name="History" component={HistoryScreen} />
+    <Tab.Screen name="Healing" component={HealingScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
 );
@@ -55,7 +73,7 @@ const MainTabs = () => (
 // Luồng Auth (chưa đăng nhập)
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Login"    component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
   </Stack.Navigator>
 );

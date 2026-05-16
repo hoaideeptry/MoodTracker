@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { db, auth } from '../services/firebaseConfig';
@@ -46,24 +47,29 @@ const StatsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  useEffect(() => {
-    let ok = true;
-    (async () => {
-      try {
-        const uid = auth.currentUser?.uid;
-        if (!uid) throw new Error('Chưa đăng nhập');
-        const q = query(collection(db,'MoodLogs'), where('userId','==',uid), orderBy('timestamp','asc'));
-        const snap = await getDocs(q);
-        const logs = snap.docs.map(d => ({...d.data(), timestamp: d.data().timestamp?.toDate?.()||new Date()}));
-        if (!ok) return;
-        const sc = logs.map(l => l.moodScore);
-        const mode = sc.length ? findMode(sc) : 3;
-        setStats({ total: logs.length, mood: {emoji:MOOD_EMOJI_MAP[mode], label:MOOD_LABELS[mode]}, streak: calcStreak(logs), week: buildWeek(logs) });
-      } catch (e) { if (ok) setErr(e.message); }
-      finally { if (ok) setLoading(false); }
-    })();
-    return () => { ok = false; };
-  }, []);
+  // useFocusEffect thay vì useEffect - tự động reload mỗi khi tab được focus
+  useFocusEffect(
+    useCallback(() => {
+      let ok = true;
+      setLoading(true);
+      setErr(null);
+      (async () => {
+        try {
+          const uid = auth.currentUser?.uid;
+          if (!uid) throw new Error('Chưa đăng nhập');
+          const q = query(collection(db,'MoodLogs'), where('userId','==',uid), orderBy('timestamp','asc'));
+          const snap = await getDocs(q);
+          const logs = snap.docs.map(d => ({...d.data(), timestamp: d.data().timestamp?.toDate?.()||new Date()}));
+          if (!ok) return;
+          const sc = logs.map(l => l.moodScore);
+          const mode = sc.length ? findMode(sc) : 3;
+          setStats({ total: logs.length, mood: {emoji:MOOD_EMOJI_MAP[mode], label:MOOD_LABELS[mode]}, streak: calcStreak(logs), week: buildWeek(logs) });
+        } catch (e) { if (ok) setErr(e.message); }
+        finally { if (ok) setLoading(false); }
+      })();
+      return () => { ok = false; };
+    }, [])
+  );
 
   if (loading) return <View style={st.ctr}><ActivityIndicator size="large" color="#FF5722"/><Text style={st.sub}>Đang tải...</Text></View>;
   if (err) return <View style={st.ctr}><Text style={{fontSize:48}}>😥</Text><Text style={st.sub}>{err}</Text></View>;

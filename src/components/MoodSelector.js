@@ -10,26 +10,26 @@ const MoodSelector = ({ selectedMood, onSelectMood }) => (
     </View>
     <View style={styles.row}>
       {MOODS.map((m) => (
-        <TouchableOpacity
-          key={m.id}
-          style={[
-            styles.circle,
-            { backgroundColor: selectedMood === m.id ? m.bg : COLORS.white },
-            selectedMood === m.id && styles.selected,
-          ]}
-          onPress={() => onSelectMood(m.id)}
-          activeOpacity={0.7}
-          accessibilityLabel={`Chọn cảm xúc ${m.label}`}
-        >
-          <Text style={styles.emoji}>{m.emoji}</Text>
-        </TouchableOpacity>
+        <View key={m.id} style={styles.itemWrapper}>
+          <TouchableOpacity
+            style={[
+              styles.circle,
+              { backgroundColor: selectedMood === m.id ? m.bg : COLORS.white },
+              selectedMood === m.id && styles.selected,
+            ]}
+            onPress={() => onSelectMood(m.id)}
+            activeOpacity={0.7}
+            accessibilityLabel={`Chọn cảm xúc ${m.label}`}
+          >
+            <Text style={styles.emoji}>{m.emoji}</Text>
+          </TouchableOpacity>
+          <Text style={[
+            styles.label,
+            selectedMood === m.id && styles.labelActive,
+          ]}>{m.label}</Text>
+        </View>
       ))}
     </View>
-    {selectedMood && (
-      <Text style={styles.label}>
-        {MOODS.find((m) => m.id === selectedMood)?.label}
-      </Text>
-    )}
   </View>
 );
 
@@ -54,6 +54,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 2,
   },
+  itemWrapper: {
+    alignItems: 'center',
+    gap: 6,
+  },
   circle: {
     width: 58,
     height: 58,
@@ -76,10 +80,13 @@ const styles = StyleSheet.create({
   },
   label: {
     textAlign: 'center',
-    marginTop: 12,
     fontSize: SIZES.fontSmall,
+    color: COLORS.textSub,
+    fontWeight: '500',
+  },
+  labelActive: {
     color: COLORS.textMain,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

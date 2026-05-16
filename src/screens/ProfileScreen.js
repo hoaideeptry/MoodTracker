@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
+  Modal, TextInput, ScrollView, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
+  Keyboard, TouchableWithoutFeedback,
+} from 'react-native';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebaseConfig';
@@ -32,6 +37,7 @@ const ProfileScreen = () => {
   };
 
   const handleSave = async () => {
+    Keyboard.dismiss(); // Ẩn bàn phím trước khi lưu
     try {
       await setDoc(doc(db, 'Users', user.uid), {
         name: edit.name, email: user.email, birthday: edit.birthday, hobbies: edit.hobbies,
@@ -75,28 +81,77 @@ const ProfileScreen = () => {
         </TouchableOpacity>
 
         {/* Edit Modal */}
-        <Modal visible={modal} transparent animationType="slide">
-          <View style={s.overlay}>
-            <View style={s.modalBox}>
-              <Text style={s.modalTitle}>Chỉnh sửa thông tin</Text>
-              <Text style={s.lbl}>Họ và Tên</Text>
-              <TextInput style={s.input} value={edit.name} onChangeText={(t) => setEdit({ ...edit, name: t })} />
-              <Text style={s.lbl}>Email</Text>
-              <TextInput style={[s.input, { backgroundColor: '#EEE', color: '#999' }]} value={user.email} editable={false} />
-              <Text style={s.lbl}>Ngày sinh</Text>
-              <TextInput style={s.input} value={edit.birthday} onChangeText={(t) => setEdit({ ...edit, birthday: t })} placeholder="DD/MM/YYYY" />
-              <Text style={s.lbl}>Sở thích</Text>
-              <TextInput style={s.input} value={edit.hobbies} onChangeText={(t) => setEdit({ ...edit, hobbies: t })} placeholder="Đọc sách, du lịch..." />
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                <TouchableOpacity style={[s.mBtn, { backgroundColor: '#EEE', flex: 1 }]} onPress={() => setModal(false)}>
-                  <Text style={{ color: '#666', fontWeight: '600' }}>Hủy</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.mBtn, { backgroundColor: '#FDD5BD', flex: 1 }]} onPress={handleSave}>
-                  <Text style={{ color: '#333', fontWeight: 'bold' }}>Lưu</Text>
-                </TouchableOpacity>
+        <Modal visible={modal} transparent animationType="slide" onRequestClose={() => setModal(false)}>
+          {/* Bọc TouchableWithoutFeedback để ẩn bàn phím khi chạm vào overlay */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <View style={s.overlay}>
+                <View style={s.modalBox}>
+                  <Text style={s.modalTitle}>Chỉnh sửa thông tin</Text>
+
+                  {/* TouchableWithoutFeedback không chặn input bên trong nhờ accessible={false} */}
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                  <Text style={s.lbl}>Họ và Tên</Text>
+                  <TextInput
+                    style={s.input}
+                    value={edit.name}
+                    onChangeText={(t) => setEdit({ ...edit, name: t })}
+                    placeholder="Nhập tên của bạn"
+                    returnKeyType="next"
+                  />
+
+                  <Text style={s.lbl}>Email</Text>
+                  <TextInput
+                    style={[s.input, { backgroundColor: '#F0EEEE', color: '#AAA' }]}
+                    value={user.email}
+                    editable={false}
+                  />
+
+                  <Text style={s.lbl}>Ngày sinh</Text>
+                  <TextInput
+                    style={s.input}
+                    value={edit.birthday}
+                    onChangeText={(t) => setEdit({ ...edit, birthday: t })}
+                    placeholder="DD/MM/YYYY"
+                    keyboardType="numeric"
+                    returnKeyType="next"
+                  />
+
+                  <Text style={s.lbl}>Sở thích</Text>
+                  <TextInput
+                    style={s.input}
+                    value={edit.hobbies}
+                    onChangeText={(t) => setEdit({ ...edit, hobbies: t })}
+                    placeholder="Đọc sách, du lịch..."
+                    returnKeyType="done"
+                  />
+
+                  {/* Nút Hủy / Lưu — luôn hiện sau khi nhập xong */}
+                  <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, marginBottom: 4 }}>
+                    <TouchableOpacity
+                      style={[s.mBtn, { backgroundColor: '#F0EEEE', flex: 1 }]}
+                      onPress={() => setModal(false)}
+                    >
+                      <Text style={{ color: '#888', fontWeight: '600', fontSize: 15 }}>Hủy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.mBtn, { backgroundColor: '#FDD5BD', flex: 1 }]}
+                      onPress={handleSave}
+                    >
+                      <Text style={{ color: '#4A4E69', fontWeight: 'bold', fontSize: 15 }}>Lưu</Text>
+                    </TouchableOpacity>
+                  </View>
+                  </ScrollView>
+                </View>
               </View>
-            </View>
-          </View>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
         </Modal>
       </ScrollView>
     </SafeAreaView>

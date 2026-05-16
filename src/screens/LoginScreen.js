@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  SafeAreaView, KeyboardAvoidingView, Platform,
+  ActivityIndicator, ScrollView,
+  Keyboard, TouchableWithoutFeedback,
+} from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
 import { COLORS, SIZES } from '../theme/theme';
@@ -10,6 +15,7 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    Keyboard.dismiss(); // Ẩn bàn phím ngay khi nhấn nút
     if (!email.trim() || !password.trim()) {
       alert('Vui lòng nhập đầy đủ Email và Mật khẩu!');
       return;
@@ -30,45 +36,84 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Chào mừng trở lại! 👋</Text>
-          <Text style={styles.subTitle}>Hãy đăng nhập để tiếp tục hành trình chăm sóc tâm hồn nhé.</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput style={styles.input} placeholder="your email@gmail.com" placeholderTextColor={COLORS.textSub}
-              keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <SafeAreaView style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Chào mừng trở lại! 👋</Text>
+            <Text style={styles.subTitle}>Hãy đăng nhập để tiếp tục hành trình chăm sóc tâm hồn nhé.</Text>
           </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Mật khẩu</Text>
-            <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={COLORS.textSub}
-              secureTextEntry value={password} onChangeText={setPassword} />
-          </View>
-          <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-          </TouchableOpacity>
-        </View>
 
-        <View style={styles.footer}>
-          <TouchableOpacity style={[styles.primaryBtn, isLoading && { opacity: 0.7 }]} onPress={handleLogin} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color={COLORS.textMain} /> : <Text style={styles.btnText}>Đăng Nhập</Text>}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkBtn}>
-            <Text style={styles.linkText}>Chưa có tài khoản? <Text style={styles.linkTextBold}>Đăng ký ngay</Text></Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="your email@gmail.com"
+                placeholderTextColor={COLORS.textSub}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Mật khẩu</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor={COLORS.textSub}
+                secureTextEntry
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+            <TouchableOpacity style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.primaryBtn, isLoading && { opacity: 0.7 }]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? <ActivityIndicator color={COLORS.textMain} />
+                : <Text style={styles.btnText}>Đăng Nhập</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register')}
+              style={styles.linkBtn}
+            >
+              <Text style={styles.linkText}>
+                Chưa có tài khoản?{' '}
+                <Text style={styles.linkTextBold}>Đăng ký ngay</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+        </SafeAreaView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { flex: 1, padding: SIZES.padding, justifyContent: 'center' },
+  content: { flexGrow: 1, padding: SIZES.padding, justifyContent: 'center' },
   header: { marginBottom: 40 },
   headerTitle: { fontSize: 32, fontWeight: 'bold', color: COLORS.textMain, marginBottom: 12 },
   subTitle: { fontSize: 16, color: COLORS.textSub, lineHeight: 24 },
